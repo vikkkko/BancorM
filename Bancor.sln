@@ -3,9 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bancor", "Bancor\Bancor.csproj", "{B5886CD9-8C46-4887-A3B2-32ED1906DC35}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{D0E0110F-2F1A-4CC1-B779-40D543B537EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmartContact", "SmartContact", "{7BAA8542-F2EB-43EB-BE8E-18FE6D4096E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BancorManager", "BancorManager\BancorManager.csproj", "{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BancorConverters", "BancorConverters", "{EBA73122-572F-4D00-BD4F-C72FAECB5537}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cgas2NNC", "Cgas2NNC\Cgas2NNC.csproj", "{768E7393-D335-4B48-A511-DF67C8CB9DDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BancorMath", "BancorMath\BancorMath.csproj", "{B5886CD9-8C46-4887-A3B2-32ED1906DC35}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,17 +21,31 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0E0110F-2F1A-4CC1-B779-40D543B537EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0E0110F-2F1A-4CC1-B779-40D543B537EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0E0110F-2F1A-4CC1-B779-40D543B537EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0E0110F-2F1A-4CC1-B779-40D543B537EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{768E7393-D335-4B48-A511-DF67C8CB9DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{768E7393-D335-4B48-A511-DF67C8CB9DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{768E7393-D335-4B48-A511-DF67C8CB9DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{768E7393-D335-4B48-A511-DF67C8CB9DDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5886CD9-8C46-4887-A3B2-32ED1906DC35}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D85405D0-F6A9-4DBA-BD4F-8233CEBB54E5} = {7BAA8542-F2EB-43EB-BE8E-18FE6D4096E0}
+		{EBA73122-572F-4D00-BD4F-C72FAECB5537} = {7BAA8542-F2EB-43EB-BE8E-18FE6D4096E0}
+		{768E7393-D335-4B48-A511-DF67C8CB9DDA} = {EBA73122-572F-4D00-BD4F-C72FAECB5537}
+		{B5886CD9-8C46-4887-A3B2-32ED1906DC35} = {7BAA8542-F2EB-43EB-BE8E-18FE6D4096E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {81206D39-EDE1-451D-BD80-E37E5BF421B6}

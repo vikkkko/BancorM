@@ -5,7 +5,7 @@ using Helper = Neo.SmartContract.Framework.Helper;
 using System.Numerics;
 using System.ComponentModel;
 
-namespace Bancor
+namespace BancorMath
 {
     /*
        思路参考了 https://github.com/bancorprotocol/contracts 
@@ -13,17 +13,12 @@ namespace Bancor
         
         10.14小结   因为neo限制了bigint的最大数，所以合约内一些预先算好的值都删减一位
    */
-    public class Bancor : SmartContract
+    public class BancorMath : SmartContract
     {
         //管理员账户
         static readonly byte[] superAdmin = Helper.ToScriptHash("ALjSnMZidJqd18iQaoCgFun6iqWRm2cVtj");
         //修正数 计算的过程中先乘这个数 最后统一除掉  主要是为了保留计算过程中的精度
         static readonly BigInteger FIXED_1 = (new byte[] { 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0 }).AsBigInteger(); //0x800000000000000000000000000000  
-        static readonly BigInteger MaxConnectWeight = 100000;
-
-        public delegate void deleTest(BigInteger b);
-        [DisplayName("transfer")]
-        public static event deleTest Test;
 
         static readonly BigInteger B_010000000000000000000000000000 = (new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }).AsBigInteger();
         static readonly BigInteger B_020000000000000000000000000000 = (new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 }).AsBigInteger();
@@ -72,136 +67,55 @@ namespace Bancor
             else if (Runtime.Trigger == TriggerType.Application)
             {
                 /*
-                 * invoke 即可得到值的方法
-                 */
-                if ("calculatePurchaseReturn" == method)
-                {
-                    var amount = (BigInteger)args[0];
-                    
-                    var connectBalance = GetConnectBalance();
-                    var smartTokenSupply = GetSmartTokenSupply();
-                    var connectWeight = GetConnetWeight();
-
-                    if (connectBalance == 0 || smartTokenSupply == 0 || connectWeight == 0)
-                        return 0;
-
-                    var baseLog = OptimalLog((amount + connectBalance) * FIXED_1 / connectBalance);
-                    var baseLogTimesExp = baseLog * connectWeight / MaxConnectWeight;
-                    var T = smartTokenSupply * OptimalExp(baseLogTimesExp) / FIXED_1 - smartTokenSupply;
-                    return T;
-                }
-                if ("getConnectBalance" == method)
-                {
-                    return GetConnectBalance();
-                }
-                if ("getSmartTokenSupply" == method)
-                {
-                    return GetSmartTokenSupply();
-                }
-                if ("getConnetWeight" == method)
-                {
-                    return GetConnetWeight();
-                }
-                if ("getMaxConnectWeight" == method)
-                {
-                    return MaxConnectWeight;
-                }
-
-
-                /*
-                 * 需要发送交易调用的
-                 */
-                if ("init" == method)
-                {
-                    if (!Runtime.CheckWitness(superAdmin))//只有管理员能初始化
-                        return false;
-
-                    //这里需要考虑重复初始化的问题
-                    StorageMap connectWeightMap = Storage.CurrentContext.CreateMap("connectWeightMap");
-                    if (connectWeightMap.Get("connectWeight").AsBigInteger() > 0)
-                        return false;
-                    connectWeightMap.Put("connectWeight", 10000);
-                    StorageMap connectBalanceMap = Storage.CurrentContext.CreateMap("connectBalanceMap");
-                    connectBalanceMap.Put("connectBalance", 100000);
-                    StorageMap smartTokenSupplyMap = Storage.CurrentContext.CreateMap("smartTokenSupplyMap");
-                    smartTokenSupplyMap.Put("smartTokenSupply", 1000000000);
-
-                }
-                if ("setConnectWeight" == method)
-                {
-                    BigInteger connectWeight = (BigInteger)args[0];
-                    StorageMap connectWeightMap = Storage.CurrentContext.CreateMap("connectWeightMap");
-                    connectWeightMap.Put("connectWeight", connectWeight);
-                }
+                * 考虑下这里要不要也限制下 数额不能小于等于0  还是就纯计算
+                */
                 //转入一定的抵押币换取智能代币
                 if ("purchase" == method)
                 {
-                    var amount = (BigInteger)args[0]; // 转入的抵押币的数量
-                    
-                    var connectBalance = GetConnectBalance();
-                    var smartTokenSupply = GetSmartTokenSupply();
-                    var connectWeight = GetConnetWeight();
-                    
-                    var baseLog = OptimalLog((amount + connectBalance) * FIXED_1 / connectBalance);
-                    var baseLogTimesExp = baseLog * connectWeight / MaxConnectWeight; // 因为没有小数  所以只能用先×10 再/100这种方法来模拟 ×0.1
+                    var E = (BigInteger)args[0]; // 转入的准备金的数量
+
+                    var R = (BigInteger)args[1]; //准备金的余额
+
+                    var S = (BigInteger)args[2];//智能代币的余额
+
+                    // connectWeight/maxConnectWeight得到恒定金率  即w
+                    var connectWeight = (BigInteger)args[3];
+                    var maxConnectWeight = (BigInteger)args[4];
+                    var a = (E + R) * FIXED_1 / R;
+                    var baseLog = OptimalLog(a);
+
+                    var baseLogTimesExp = baseLog * connectWeight / maxConnectWeight; // 因为没有小数  所以只能用先×10 再/100这种方法来模拟 ×0.1
+
                     //计算得出可以换取得智能代币的数量
-                    var T = smartTokenSupply * OptimalExp(baseLogTimesExp) / FIXED_1 - smartTokenSupply; //S*(1+E/R)^F -S
-                    
-                    if (smartTokenSupply < T)//应该不会出现这种情况
-                        return false;
-                    
-                    smartTokenSupply = smartTokenSupply - T;
-                    connectBalance = connectBalance + amount;
-                    PutConnectBalance(connectBalance);
-                    PutSmartTokenSupply(smartTokenSupply);
-                    return true;
+                    var T = S * OptimalExp(baseLogTimesExp) / FIXED_1 - S; //S*(1+E/R)^F -S
+
+                    return T;
+                }
+
+                //清算一定的智能代币换取抵押币
+                if ("sale" == method)
+                {
+                    var T = (BigInteger)args[0]; // 转入的智能代币的数量
+                    var R = (BigInteger)args[1]; //准备金的余额
+
+                    var S = (BigInteger)args[2];//智能代币的余额
+
+                    // connectWeight/maxConnectWeight得到恒定金率  即w
+                    var connectWeight = (BigInteger)args[3];
+                    var maxConnectWeight = (BigInteger)args[4];
+
+                    var baseLog = OptimalLog((T + S) * FIXED_1 / S);
+
+                    var baseLogTimesExp = baseLog * maxConnectWeight/ connectWeight;
+
+                    var E = R * OptimalExp(baseLogTimesExp) / FIXED_1 - R; //S*(1+E/R)^F
+
+                    return E;
                 }
             }
             return true;
         }
 
-        //获取抵押金的余量
-        public static BigInteger GetConnectBalance()
-        {
-            StorageMap connectBalanceMap = Storage.CurrentContext.CreateMap("connectBalanceMap");
-            return connectBalanceMap.Get("connectBalance").AsBigInteger();
-        }
-        //更改抵押金的数量
-        public static void PutConnectBalance(BigInteger _amount)
-        {
-            StorageMap connectBalanceMap = Storage.CurrentContext.CreateMap("connectBalanceMap");
-            if(_amount == 0)
-                connectBalanceMap.Delete("connectBalance");
-            else
-                connectBalanceMap.Put("connectBalance", _amount);
-        }
-        //获取智能代币的余量
-        public static BigInteger GetSmartTokenSupply()
-        {
-            StorageMap smartTokenSupplyMap = Storage.CurrentContext.CreateMap("smartTokenSupplyMap");
-            return smartTokenSupplyMap.Get("smartTokenSupply").AsBigInteger();
-        }
-        //更改智能代币的余量
-        public static void PutSmartTokenSupply(BigInteger _supply)
-        {
-            StorageMap smartTokenSupplyMap = Storage.CurrentContext.CreateMap("smartTokenSupplyMap");
-            if (_supply == 0)
-                smartTokenSupplyMap.Delete("smartTokenSupply");
-            else
-                smartTokenSupplyMap.Put("smartTokenSupply", _supply);
-        }
-        //获取CW
-        public static BigInteger GetConnetWeight()
-        {
-            StorageMap connectWeightMap = Storage.CurrentContext.CreateMap("connectWeightMap");
-            return connectWeightMap.Get("connectWeight").AsBigInteger();
-        }
-        //更改CW
-        public static void PutConnectWeight(BigInteger _weight)
-        {
-            StorageMap connectWeightMap = Storage.CurrentContext.CreateMap("connectWeightMap");
-            connectWeightMap.Put("connetWeight", _weight);
-        }
 
         //Return e ^ (x / FIXED_1) * FIXED_1
         public static BigInteger OptimalExp(BigInteger x)
@@ -256,9 +170,8 @@ namespace Bancor
             if (x >= B_d3094c70f034de4b96ff7d5b6f99fc)
             {
                 res += B_400000000000000000000000000000;
-                x = x * FIXED_1 / B_d3094c70f034de4b96ff7d5b6f99fc;  //0.606530659712634
+                x = x * FIXED_1 / B_d3094c70f034de4b96ff7d5b6f99fc;
             }
-            Test(x);
             if (x >= B_a45af1e1f40c333b3de1db4dd55f29)
             {
                 res += B_200000000000000000000000000000;
