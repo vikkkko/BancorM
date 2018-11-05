@@ -104,9 +104,11 @@ namespace Cgas2NNC
                     if (!Runtime.CheckWitness(superAdmin))
                         return false;
                     BigInteger amount = (BigInteger)args[0];
-                    if ((bool)cgasCall("transfer", new object[3] { ExecutionEngine.ExecutingScriptHash,superAdmin, amount }))
+                    var connectBalance = GetConnectBalance();
+                    if (connectBalance < amount)
+                        return false;
+                    if ((bool)cgasCall("transfer", new object[3] { ExecutionEngine.ExecutingScriptHash, superAdmin, amount }))
                     {
-                        var connectBalance = GetConnectBalance();
                         PutConnectBalance(connectBalance - amount);
                         return true;
 
@@ -117,10 +119,12 @@ namespace Cgas2NNC
                     if (!Runtime.CheckWitness(superAdmin))
                         return false;
                     BigInteger amount = (BigInteger)args[0];
+                    var smartTokenSupply = GetSmartTokenSupply();
+                    if (smartTokenSupply < amount)
+                        return false;
                     if ((bool)nncCall("transfer_app", new object[3] { ExecutionEngine.ExecutingScriptHash, superAdmin, amount }))
                     {
-                        var smartTokenSupply = GetSmartTokenSupply();
-                        PutConnectBalance(smartTokenSupply - amount);
+                        PutSmartTokenSupply(smartTokenSupply - amount);
                         return true;
 
                     }

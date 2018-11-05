@@ -34,30 +34,32 @@ namespace BancorManager
                 if ("getMathContract" == method) return GetMathContract();
 
                 //需要管理员权限调用
-                if ("setMathContract" == method) return SetMathContract((byte[])args[0]);
-                if ("setWhiteList" == method) return SetWhiteList((byte[])args[0],(string)args[1]);
+                if ("setMathContract" == method) return SetMathContract((byte[]) args[0]);
+                if ("setWhiteList" == method) return SetWhiteList((byte[]) args[0], (string) args[1]);
 
                 //转发的方法
-                {//不在白名单的合约不准跳板
-                    Map<byte[], string> map = GetWhiteList();
-                    if (!map.HasKey(callscript))
-                        return true;
-                }
+                //不在白名单的合约不准跳板
+                Map<byte[], string> map = GetWhiteList();
+                if (!map.HasKey(callscript))
+                    return true;
+
                 byte[] mathContract = GetMathContract();
                 if (mathContract.Length == 0) return true;
-                deleCall call = (deleCall)mathContract.ToDelegate();
+                deleCall call = (deleCall) mathContract.ToDelegate();
                 if ("purchase" == method)
                 {
-                    return call(method,args);
+                    return call(method, args);
                 }
+
                 if ("sale" == method)
                 {
-                    return call(method,args);
+                    return call(method, args);
                 }
 
                 //未知方法  也全部去转发
                 return call(method, args);
             }
+
             return true;
         }
 
@@ -82,7 +84,7 @@ namespace BancorManager
 
         public static bool SetMathContract(byte[] contractHash)
         {
-            if (!Runtime.CheckWitness(contractHash))
+            if (!Runtime.CheckWitness(superAdmin))
                 return false;
             StorageMap mathContractMap = Storage.CurrentContext.CreateMap("mathContractMap");
             mathContractMap.Put("mathContract", contractHash);
@@ -96,7 +98,7 @@ namespace BancorManager
             StorageMap whiteListMap = Storage.CurrentContext.CreateMap("whiteListMap");
             byte[] whiteListBytes = whiteListMap.Get("whiteList");
             Map<byte[], string> map = new Map<byte[], string>();
-            if (whiteListBytes.Length>0)
+            if (whiteListBytes.Length > 0)
                 map = whiteListBytes.Deserialize() as Map<byte[], string>;
             //if (map.HasKey(key)) //如果已经有了 就返回
             //    return false;
