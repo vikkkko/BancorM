@@ -107,7 +107,7 @@ namespace Cgas2NNC
                     var connectBalance = GetConnectBalance();
                     if (connectBalance < amount)
                         return false;
-                    if ((bool)cgasCall("transfer", new object[3] { ExecutionEngine.ExecutingScriptHash, superAdmin, amount }))
+                    if ((bool)cgasCall("transfer_app", new object[3] { ExecutionEngine.ExecutingScriptHash, superAdmin, amount }))
                     {
                         PutConnectBalance(connectBalance - amount);
                         return true;
@@ -169,7 +169,7 @@ namespace Cgas2NNC
 
 
 
-                    if ((bool)nncCall("transfer_app", new object[3] { ExecutionEngine.ExecutingScriptHash, tx.to, T }))
+                    if ((bool)nncCall("transfer_app", new object[3] { ExecutionEngine.ExecutingScriptHash, tx.from, T }))
                     {
                         PutConnectBalance(connectBalance + amount);
                         PutSmartTokenSupply(smartTokenSupply-T);
@@ -207,7 +207,7 @@ namespace Cgas2NNC
                     if (connectBalance < E)//应该不会出现这种情况
                         return false;
 
-                    if ((bool)cgasCall("transfer", new object[3] { ExecutionEngine.ExecutingScriptHash, tx.to, E }))
+                    if ((bool)cgasCall("transfer", new object[3] { ExecutionEngine.ExecutingScriptHash, tx.from, E }))
                     {
                         PutConnectBalance(connectBalance - E);
                         PutSmartTokenSupply(smartTokenSupply + E);
